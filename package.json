@@ -1,0 +1,32 @@
+{
+  "name": "hatimer",
+  "version": "0.0.1",
+  "description": "High available timer implementation using Redis",
+  "main": "dist/index.js",
+  "scripts": {
+    "prepublish": "npm run build",
+    "build": "gulp build",
+    "watch": "gulp watch",
+    "clean": "gulp clean",
+    "test": "npm run build && jasmine"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^7.0.12",
+    "gulp": "^3.9.1",
+    "ms": "^1.0.0",
+    "node-uuid": "^1.4.8",
+    "redis": "^2.7.1",
+    "source-map-support": "^0.4.14"
+  },
+  "devDependencies": {
+    "@types/jasmine": "^2.5.47",
+    "bluebird": "^3.5.0",
+    "fakeredis": "^2.0.0",
+    "gulp-istanbul": "^1.1.1",
+    "gulp-jasmine": "^2.4.2",
+    "jasmine-console-reporter": "^1.2.7",
+    "remap-istanbul": "^0.9.5"
+  }
+}
