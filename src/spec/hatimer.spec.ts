@@ -7,51 +7,101 @@ function asyncHelper(assertion: () => Promise<void>): (done) => void {
 }
 
 describe('HATimer', () => {
-  const redisMock: any = promisifyAll(fakeRedis);
+  const redisClient = promisifyAll(fakeRedis).createClient(null, null, {fast: true});
   let timer: HATimer;
 
   beforeEach(() => {
-    timer = new HATimer(redisMock.createClient());
+    timer = new HATimer({
+      redisClient, 
+      queue: 'test',
+      idlePullDelay: 10
+    });
     timer.install();
+
+    // Fakeredis doesn't support evalsha. Fake code below imitates slice.lua
+    spyOn(redisClient, 'evalshaAsync').and.callFake(async (hash, numKey, key, current, count) => {
+      // If zcard is not invoked, zrangebyscore would fail. This could be a bug of fakeredis.  
+      await redisClient.zcardAsync(key);
+      const ids = await redisClient.zrangebyscoreAsync(key, '-inf', current, 'limit', 0, count);
+      await redisClient.zremrangebyrankAsync(key, 0, ids.length);
+      return ids;
+    });
   });
 
-  afterEach(() => {
+  afterEach(asyncHelper(async () => {
     timer.uninstall();
-  });
+    await redisClient.flushdbAsync();
+  }));
 
   it('should deliver an event', asyncHelper(async () => {
     const arg = {bar: 1};
-    await timer.addEvent('foo', arg, 1);
-    await new Promise(resolve => {
-      timer.registerHandler('foo', async o => {
-        expect(o).toEqual(arg);
-        resolve();
-      });
-    });
+    const spy = jasmine.createSpy('handler');
+    timer.registerHandler('foo', spy);
+    await timer.addEvent('foo', arg, 0);
+    await delay(50);
+    expect(spy).toHaveBeenCalledWith(arg);
   }));
 
   it('should not deliver a same event more than twice', asyncHelper(async () => {
     const spy = jasmine.createSpy('handler');
-    await timer.addEvent('foo', null, 1);
     timer.registerHandler('foo', spy);
-    await delay(250);
+    await timer.addEvent('foo', null, 0);
+    await delay(50);
     expect(spy).toHaveBeenCalledTimes(1);
   }));
 
   it('should recognize a string format delay', asyncHelper(async () => {
     const spy = jasmine.createSpy('handler');
-    await timer.addEvent('foo', null, '0.01s');
     timer.registerHandler('foo', spy);
-    await delay(200);
+    await timer.addEvent('foo', null, '0s');
+    await delay(50);
     expect(spy).toHaveBeenCalled();
   }));
 
   it('should remove an event', asyncHelper(async () => {
     const spy = jasmine.createSpy('handler');
-    const id = await timer.addEvent('foo', null, 1);
-    await timer.removeEvent(id);
     timer.registerHandler('foo', spy);
-    await delay(200);
+    const id = await timer.addEvent('foo', null, 50);
+    await timer.removeEvent(id);
+    await delay(50);
     expect(spy).not.toHaveBeenCalled();
+  }));
+});
+
+describe('HATimer Queue Split', () => {
+  const redisClient = promisifyAll(fakeRedis).createClient(null, null, {fast: true});
+  let timer: HATimer;
+
+  beforeEach(() => {
+    timer = new HATimer({
+      redisClient, 
+      queue: 'test',
+      queueSplitCount: 8,
+      idlePullDelay: 10
+    });
+    timer.install();
+
+    // Fakeredis doesn't support evalsha. Fake code below imitates slice.lua
+    spyOn(redisClient, 'evalshaAsync').and.callFake(async (hash, numKey, key, current, count) => {
+      // If zcard is not invoked, zrangebyscore would fail. This could be a bug of fakeredis.  
+      await redisClient.zcardAsync(key);
+      const ids = await redisClient.zrangebyscoreAsync(key, '-inf', current, 'limit', 0, count);
+      await redisClient.zremrangebyrankAsync(key, 0, ids.length);
+      return ids;
+    });
+  });
+
+  afterEach(asyncHelper(async () => {
+    timer.uninstall();
+    await redisClient.flushdbAsync();
+  }));
+
+  it('should deliver an event', asyncHelper(async () => {
+    const arg = {bar: 1};
+    const spy = jasmine.createSpy('handler');
+    timer.registerHandler('foo', spy);
+    await timer.addEvent('foo', arg, 0);
+    await delay(100);
+    expect(spy).toHaveBeenCalledWith(arg);
   }));
 });
