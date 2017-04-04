@@ -1,9 +1,18 @@
 import * as fakeRedis from 'fakeredis';
+import { RedisClient } from 'redis';
 import { promisifyAll, delay } from 'bluebird';
 import { HATimer } from '../index';
+import { asyncHelper } from '../test-util';
 
-function asyncHelper(assertion: () => Promise<void>): (done) => void {
-  return done => assertion().then(done, done.fail);
+/** Fakeredis doesn't support evalsha. Fake code below imitates slice.lua */
+function fakeSliceLua(redisClient: RedisClient): Function {
+  return async (hash, numKey, key, current, count) => {
+    // If zcard is not invoked, zrangebyscore would fail. This could be a bug of fakeredis.  
+    await redisClient.zcardAsync(key);
+    const ids = await redisClient.zrangebyscoreAsync(key, '-inf', current, 'limit', 0, count);
+    await redisClient.zremrangebyrankAsync(key, 0, ids.length);
+    return ids;
+  };
 }
 
 describe('HATimer', () => {
@@ -18,14 +27,7 @@ describe('HATimer', () => {
     });
     timer.install();
 
-    // Fakeredis doesn't support evalsha. Fake code below imitates slice.lua
-    spyOn(redisClient, 'evalshaAsync').and.callFake(async (hash, numKey, key, current, count) => {
-      // If zcard is not invoked, zrangebyscore would fail. This could be a bug of fakeredis.  
-      await redisClient.zcardAsync(key);
-      const ids = await redisClient.zrangebyscoreAsync(key, '-inf', current, 'limit', 0, count);
-      await redisClient.zremrangebyrankAsync(key, 0, ids.length);
-      return ids;
-    });
+    spyOn(redisClient, 'evalshaAsync').and.callFake(fakeSliceLua(redisClient));
   });
 
   afterEach(asyncHelper(async () => {
@@ -81,14 +83,7 @@ describe('HATimer Queue Split', () => {
     });
     timer.install();
 
-    // Fakeredis doesn't support evalsha. Fake code below imitates slice.lua
-    spyOn(redisClient, 'evalshaAsync').and.callFake(async (hash, numKey, key, current, count) => {
-      // If zcard is not invoked, zrangebyscore would fail. This could be a bug of fakeredis.  
-      await redisClient.zcardAsync(key);
-      const ids = await redisClient.zrangebyscoreAsync(key, '-inf', current, 'limit', 0, count);
-      await redisClient.zremrangebyrankAsync(key, 0, ids.length);
-      return ids;
-    });
+    spyOn(redisClient, 'evalshaAsync').and.callFake(fakeSliceLua(redisClient));
   });
 
   afterEach(asyncHelper(async () => {
@@ -101,7 +96,7 @@ describe('HATimer Queue Split', () => {
     const spy = jasmine.createSpy('handler');
     timer.registerHandler('foo', spy);
     await timer.addEvent('foo', arg, 0);
-    await delay(100);
+    await delay(200);
     expect(spy).toHaveBeenCalledWith(arg);
   }));
 });
