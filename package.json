@@ -10,6 +10,8 @@
     "clean": "gulp clean",
     "test": "npm run build && jasmine"
   },
+  "license": "MIT",
+  "repository": "crierr/hatimer",
   "author": "SeungJin Oh <crierr@gmail.com>",
   "dependencies": {
     "@types/node": "^7.0.12",
