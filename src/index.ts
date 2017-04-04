@@ -1,6 +1,6 @@
 import 'source-map-support/register';
 import * as ms from 'ms';
-import * as uuid from 'node-uuid';
+import * as uuid from 'uuid';
 import { setTimeout, clearTimeout } from 'timers';
 import { RedisClient } from 'redis';
 import { promisifyAll } from 'bluebird';

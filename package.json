@@ -16,9 +16,9 @@
     "bluebird": "^3.5.0",
     "gulp": "^3.9.1",
     "ms": "^1.0.0",
-    "node-uuid": "^1.4.8",
     "redis": "^2.7.1",
-    "source-map-support": "^0.4.14"
+    "source-map-support": "^0.4.14",
+    "uuid": "^3.0.1"
   },
   "devDependencies": {
     "@types/jasmine": "^2.5.47",
