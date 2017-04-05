@@ -1,7 +1,7 @@
 {
   "name": "hatimer",
-  "version": "0.0.1",
-  "description": "High available timer implementation using Redis",
+  "version": "0.0.2",
+  "description": "Highly available timer implementation using Redis",
   "main": "dist/index.js",
   "scripts": {
     "prepublish": "npm run build",
