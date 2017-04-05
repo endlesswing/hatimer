@@ -12,11 +12,10 @@ describe('HATimer Integration', () => {
   
   beforeEach(asyncHelper(async () => {
     timer = new HATimer({
-      redisClient, 
       queue: 'test-integration',
       idlePullDelay: 10
     });
-    timer.install();
+    timer.install(redisClient);
     await delay(100);
   }));
 

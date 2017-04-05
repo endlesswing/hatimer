@@ -21,11 +21,10 @@ describe('HATimer', () => {
 
   beforeEach(() => {
     timer = new HATimer({
-      redisClient, 
       queue: 'test',
       idlePullDelay: 10
     });
-    timer.install();
+    timer.install(redisClient);
 
     spyOn(redisClient, 'evalshaAsync').and.callFake(fakeSliceLua(redisClient));
   });
@@ -76,12 +75,11 @@ describe('HATimer Queue Split', () => {
 
   beforeEach(() => {
     timer = new HATimer({
-      redisClient, 
       queue: 'test',
       queueSplitCount: 8,
       idlePullDelay: 10
     });
-    timer.install();
+    timer.install(redisClient);
 
     spyOn(redisClient, 'evalshaAsync').and.callFake(fakeSliceLua(redisClient));
   });

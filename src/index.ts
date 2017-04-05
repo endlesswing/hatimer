@@ -11,7 +11,6 @@ export interface Handler {
 }
 
 export interface HATimerOptions {
-  redisClient: RedisClient;
   queue: string;
   queueSplitCount?: number;
   pullCount?: number;
@@ -20,36 +19,34 @@ export interface HATimerOptions {
 
 export class HATimer {
   private redisClient: RedisClient;
+  private sliceLua: ScriptHelper;
   private pullTimerId: NodeJS.Timer;
   private handlersMap: {[event: string]: Handler[]} = {};
-  private sliceLua: ScriptHelper; 
   private opts: HATimerOptions;
   private installed: boolean = false;
 
   constructor({
-    redisClient,
     queue,
     queueSplitCount = 1,
     pullCount = 64,
     idlePullDelay = 1000
   }: HATimerOptions) {
     this.opts = {
-      redisClient, 
-      queue, 
+      queue,
       queueSplitCount: Math.max(1, queueSplitCount),
-      pullCount, 
+      pullCount,
       idlePullDelay
     };
+  }
+
+  install(redisClient: RedisClient): void {
+    // TODO: Use logger
+    // console.log('Installed');
     this.redisClient = promisifyAll(redisClient);
     this.sliceLua = new ScriptHelper({
       luaPath: `${__dirname}/../lua/slice.lua`,
       redisClient: this.redisClient
     });
-  }
-
-  install(): void {
-    // TODO: Use logger
-    // console.log('Installed');
     this.installed = true;
     this.setTimerLoop();
   }
@@ -103,8 +100,6 @@ export class HATimer {
     }
 
     if (isNaN(delay)) {
-
-      // TODO: Make own error type
       throw new Error('Delay is invalid');
     }
 
@@ -167,7 +162,7 @@ export class HATimer {
         return;
       }
 
-      // TODO: Enable user to set custom handler 
+      // TODO: Enable user to set custom handler
       await Promise.all(handlers.map(handler => handler(data.arg)))
     }));
     return ids.length;

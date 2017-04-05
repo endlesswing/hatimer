@@ -25,7 +25,7 @@ export class ScriptHelper {
   async runScript(...args: any[]): Promise<any> {
     let result;
     try {
-      result = await this.redisClient.evalshaAsync(this.hash, ...args); 
+      result = await this.redisClient.evalshaAsync(this.hash, ...args);
     } catch (e) {
       if (/NOSCRIPT/.test(e.message)) {
         result = await this.redisClient.eval(this.lua, ...args);
