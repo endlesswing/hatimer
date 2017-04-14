@@ -28,7 +28,7 @@ export class ScriptHelper {
       result = await this.redisClient.evalshaAsync(this.hash, ...args);
     } catch (e) {
       if (/NOSCRIPT/.test(e.message)) {
-        result = await this.redisClient.eval(this.lua, ...args);
+        result = await this.redisClient.evalAsync(this.lua, ...args);
       } else {
         throw e;
       }

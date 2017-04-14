@@ -1,4 +1,4 @@
-import * as fakeRedis from 'fakeredis';
+import { createClient } from 'fakeredis';
 import { RedisClient } from 'redis';
 import { promisifyAll, delay } from 'bluebird';
 import { HATimer } from '../index';
@@ -7,7 +7,7 @@ import { asyncHelper } from '../test-util';
 /** Fakeredis doesn't support evalsha. Fake code below imitates slice.lua */
 function fakeSliceLua(redisClient: RedisClient): Function {
   return async (hash, numKey, key, current, count) => {
-    // If zcard is not invoked, zrangebyscore would fail. This could be a bug of fakeredis.  
+    // If zcard is not invoked, zrangebyscore would fail. This could be a bug of fakeredis.
     await redisClient.zcardAsync(key);
     const ids = await redisClient.zrangebyscoreAsync(key, '-inf', current, 'limit', 0, count);
     await redisClient.zremrangebyrankAsync(key, 0, ids.length);
@@ -16,7 +16,7 @@ function fakeSliceLua(redisClient: RedisClient): Function {
 }
 
 describe('HATimer', () => {
-  const redisClient = promisifyAll(fakeRedis).createClient(null, null, {fast: true});
+  const redisClient = promisifyAll(createClient(null, null, {fast: true}));
   let timer: HATimer;
 
   beforeEach(() => {
@@ -70,7 +70,7 @@ describe('HATimer', () => {
 });
 
 describe('HATimer Queue Split', () => {
-  const redisClient = promisifyAll(fakeRedis).createClient(null, null, {fast: true});
+  const redisClient = promisifyAll(createClient(null, null, {fast: true}));
   let timer: HATimer;
 
   beforeEach(() => {

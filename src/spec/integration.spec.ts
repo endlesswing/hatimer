@@ -9,7 +9,7 @@ describe('HATimer Integration', () => {
   }
   const redisClient = createClient(process.env.REDIS_PORT || 6379, process.env.REDIS_HOST)
   let timer: HATimer;
-  
+
   beforeEach(asyncHelper(async () => {
     timer = new HATimer({
       queue: 'test-integration',
