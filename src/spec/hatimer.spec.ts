@@ -10,7 +10,9 @@ function fakeSliceLua(redisClient: RedisClient): Function {
     // If zcard is not invoked, zrangebyscore would fail. This could be a bug of fakeredis.
     await redisClient.zcardAsync(key);
     const ids = await redisClient.zrangebyscoreAsync(key, '-inf', current, 'limit', 0, count);
-    await redisClient.zremrangebyrankAsync(key, 0, ids.length);
+    if (ids.length) {
+      await redisClient.zremrangebyrankAsync(key, 0, ids.length - 1);
+    }
     return ids;
   };
 }
@@ -57,6 +59,15 @@ describe('HATimer', () => {
     await timer.addEvent('foo', null, '0s');
     await delay(50);
     expect(spy).toHaveBeenCalled();
+  }));
+
+  it('should deliever after some delay', asyncHelper(async () => {
+    const spy = jasmine.createSpy('handler');
+    timer.registerHandler('foo', spy);
+    await timer.addEvent('foo', null, '20ms');
+    await timer.addEvent('foo', null, '20ms');
+    await delay(50);
+    expect(spy).toHaveBeenCalledTimes(2);
   }));
 
   it('should remove an event', asyncHelper(async () => {

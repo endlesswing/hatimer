@@ -77,13 +77,13 @@ export class HATimer {
   }
 
   private getHashedQueueKey(id: string): string {
-    const queueIndex = parseInt(id.slice(0, 8), 16) % this.opts.queueSplitCount;
+    const queueIndex = parseInt(id.slice(0, 8), 16) % (this.opts.queueSplitCount || 1);
     return this.getQueueKey(queueIndex);
   }
 
   private async getNextQueue(): Promise<string> {
     let queueIndex = 0;
-    if (this.opts.queueSplitCount > 1) {
+    if (this.opts.queueSplitCount && this.opts.queueSplitCount > 1) {
       const seq = await this.redisClient.incrAsync(`${this.opts.queue}:seq`);
       queueIndex = seq % this.opts.queueSplitCount;
     }

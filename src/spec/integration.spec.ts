@@ -32,4 +32,13 @@ describe('HATimer Integration', () => {
     await delay(50);
     expect(spy).toHaveBeenCalledWith(arg);
   }));
+
+  it('should deliever after some delay', asyncHelper(async () => {
+    const spy = jasmine.createSpy('handler');
+    timer.registerHandler('foo', spy);
+    await timer.addEvent('foo', null, '20ms');
+    await timer.addEvent('foo', null, '20ms');
+    await delay(50);
+    expect(spy).toHaveBeenCalledTimes(2);
+  }));
 });
