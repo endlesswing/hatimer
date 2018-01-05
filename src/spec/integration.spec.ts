@@ -41,4 +41,17 @@ describe('HATimer Integration', () => {
     await delay(50);
     expect(spy).toHaveBeenCalledTimes(2);
   }));
+  
+  it('should purge all event', asyncHelper(async () => {
+    const spyFoo = jasmine.createSpy('handler');
+    const spyBar = jasmine.createSpy('handler');
+    timer.registerHandler('foo', spyFoo);
+    timer.registerHandler('bar', spyBar);
+    await timer.addEvent('foo', null, 10);
+    await timer.addEvent('bar', null, 10);
+    await timer.purge();
+    await delay(50);
+    expect(spyFoo).not.toHaveBeenCalled();
+    expect(spyBar).not.toHaveBeenCalled();
+  }));
 });

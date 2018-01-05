@@ -78,6 +78,19 @@ describe('HATimer', () => {
     await delay(50);
     expect(spy).not.toHaveBeenCalled();
   }));
+
+  it('should purge all event', asyncHelper(async () => {
+    const spyFoo = jasmine.createSpy('handler');
+    const spyBar = jasmine.createSpy('handler');
+    timer.registerHandler('foo', spyFoo);
+    timer.registerHandler('bar', spyBar);
+    await timer.addEvent('foo', null, 10);
+    await timer.addEvent('bar', null, 10);
+    await timer.purge();
+    await delay(50);
+    expect(spyFoo).not.toHaveBeenCalled();
+    expect(spyBar).not.toHaveBeenCalled();
+  }));
 });
 
 describe('HATimer Queue Split', () => {
@@ -86,7 +99,7 @@ describe('HATimer Queue Split', () => {
 
   beforeEach(() => {
     timer = new HATimer({
-      queue: 'test',
+      queue: 'test-split',
       queueSplitCount: 8,
       idlePullDelay: 10
     });
@@ -107,5 +120,19 @@ describe('HATimer Queue Split', () => {
     await timer.addEvent('foo', arg, 0);
     await delay(200);
     expect(spy).toHaveBeenCalledWith(arg);
+  }));
+
+
+  it('should purge all event', asyncHelper(async () => {
+    const spyFoo = jasmine.createSpy('handler');
+    const spyBar = jasmine.createSpy('handler');
+    timer.registerHandler('foo', spyFoo);
+    timer.registerHandler('bar', spyBar);
+    await timer.addEvent('foo', null, 10);
+    await timer.addEvent('bar', null, 10);
+    await timer.purge();
+    await delay(50);
+    expect(spyFoo).not.toHaveBeenCalled();
+    expect(spyBar).not.toHaveBeenCalled();
   }));
 });

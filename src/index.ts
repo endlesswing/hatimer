@@ -58,6 +58,25 @@ export class HATimer {
     clearTimeout(this.pullTimerId);
   }
 
+  async purge(): Promise<void> {
+    for (let i = 0; i < (this.opts.queueSplitCount || 1); ++i) {
+      await this.purgeQueue(this.getQueueKey(i));
+    }
+  }
+
+  private async purgeQueue(queue: string): Promise<void> {
+    while (true) {
+      const ids = await this.redisClient.zrangeAsync(queue, 0, 10);
+      if (!ids || !ids.length) {
+        break;
+      }
+      await Promise.all(ids.map(async id => {
+        await this.redisClient.zremAsync(queue, id);
+        await this.redisClient.delAsync(this.getMessageKey(id));
+      }));
+    }
+  }
+
   private async setTimerLoop(): Promise<void> {
     let pullCount;
     try {
