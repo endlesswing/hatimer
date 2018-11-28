@@ -45,6 +45,15 @@ describe('HATimer', () => {
     expect(spy).toHaveBeenCalledWith(arg);
   }));
 
+  it('should deliver an event with defined eventId', asyncHelper(async () => {
+    const arg = {bar: 1};
+    const spy = jasmine.createSpy('handler');
+    timer.registerHandler('foo', spy);
+    await timer.addEvent('foo', arg, 0, 'eventId');
+    await delay(50);
+    expect(spy).toHaveBeenCalledWith(arg);
+  }));
+
   it('should not deliver a same event more than twice', asyncHelper(async () => {
     const spy = jasmine.createSpy('handler');
     timer.registerHandler('foo', spy);

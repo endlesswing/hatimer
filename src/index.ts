@@ -113,7 +113,7 @@ export class HATimer {
     return `${this.opts.queue}:msg:${id}`
   }
 
-  async addEvent(event: string, arg: any, delay: number | string): Promise<string> {
+  async addEvent(event: string, arg: any, delay: number | string, eventId?: string): Promise<string> {
     if (typeof delay === 'string') {
       delay = ms(delay) as number;
     }
@@ -123,7 +123,7 @@ export class HATimer {
     }
 
     const emittedAt = Date.now() + delay;
-    const id = uuid();
+    const id = eventId || uuid();
     const payload = JSON.stringify({event, arg});
     await this.redisClient.setAsync(this.getMessageKey(id), payload);
     await this.redisClient.zaddAsync(this.getHashedQueueKey(id), emittedAt, id);

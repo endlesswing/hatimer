@@ -1,6 +1,6 @@
 {
   "name": "hatimer",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Highly available timer implementation using Redis",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -24,7 +24,7 @@
     "uuid": "^3.0.1"
   },
   "devDependencies": {
-    "@types/jasmine": "^2.5.47",
+    "@types/jasmine": "2.5.38",
     "fakeredis": "^2.0.0",
     "gulp-istanbul": "^1.1.1",
     "gulp-jasmine": "^2.4.2",
