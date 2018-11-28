@@ -24,7 +24,7 @@
     "uuid": "^3.0.1"
   },
   "devDependencies": {
-    "@types/jasmine": "2.5.38",
+    "@types/jasmine": "^2.5.47",
     "fakeredis": "^2.0.0",
     "gulp-istanbul": "^1.1.1",
     "gulp-jasmine": "^2.4.2",
